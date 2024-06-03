@@ -4,158 +4,175 @@
           scribble/eval
           (for-label (except-in racket/base
                                 reverse)
+                     ansi-terminal
                      ansi-terminal/control
                      ansi-terminal/terminal
                      ansi-terminal/graphics))
 
 @;{============================================================================}
 
-@(define example-eval (make-base-eval '(require ansi-terminal/control
+@(define example-eval (make-base-eval '(require ansi-terminal
+                                                ansi-terminal/control
                                                 ansi-terminal/terminal
-                                                ansi-terminal/graphics)))
+                                                ansi-terminal/graphics)
+                                      '(define (some-function) #f)))
 
 @;{============================================================================}
 @;{============================================================================}
 @title[#:version  "1.1"]{ANSI Terminal Escape Codes.}
 @author[(author+email "Simon Johnston" "johnstonskj@gmail.com")]
 
-This package provides an interface to ANSI escape codes for terminals. This package focuses primarily on the
-Control Sequence Introducer (CSI) codes for terminal control.
+This package provides an interface to ANSI escape codes for terminals.
 
 For more information, see
-@hyperlink["https://en.wikipedia.org/wiki/ANSI_escape_code"]{ANSI escape code} and
-@hyperlink["https://en.wikipedia.org/wiki/C0_and_C1_control_codes"]{C0 and C1 control codes} (Wikipedia).
+@hyperlink["https://en.wikipedia.org/wiki/ANSI_escape_code"]{ANSI escape code} (Wikipedia).
 
 @table-of-contents[]
+
+@;{============================================================================}
+@;{============================================================================}
+@section[]{Common Predicates}
+@defmodule[ansi-terminal]
+
+Many control codes accept parameters which are either numeric values or ASCII characters. The following
+predicates are used for parameter checking.
+
+@defthing[char-ascii/c flat-contract?]{
+Ensures a character is in the range of the 7-bit ASCII character set.
+}
+
+@defthing[code-param/c flat-contract?]{
+Ensures a numeric value in the range of an 8-bit unsigned byte.
+}
+
+@defthing[code-param-list/c contract?]{
+Ensures either a single @racket[code-param/c] value or a list of @racket[code-param/c] values.
+}
+
+@defthing[code-param-separator char-ascii/c]{
+This value is the separator character used to print a list of parameters with @racket[code-param-list->string].
+}
+
+@defproc[(code-param->string
+          [val code-param/c])
+         string?]{
+Convert a single @racket[code-param/c] to a string.
+
+@examples[#:eval example-eval
+(code-param->string 22)
+(code-param->string 7)
+(code-param->string (char->integer #\λ))
+]
+}
+
+@defproc[(code-param-list->string
+          [val (or/c code-param/c code-param-list/c)])
+         string?]{
+Convert a @racket[code-param-list/c] to a string.
+
+@examples[#:eval example-eval
+(code-param-list->string '(22 34))
+(code-param-list->string '(41))
+(code-param-list->string 46)
+(code-param-list->string (char->integer #\λ))
+]
+}
 
 @;{============================================================================}
 @;{============================================================================}
 @section[]{Control Sequences}
 @defmodule[ansi-terminal/control]
 
-The C0 and C1 control code or control character sets define control codes for use in text by computer systems that
-use ASCII and derivatives of ASCII. The codes represent additional information about the text, such as the position
+The @tt{C0} and @tt{C1} control code or control character sets define control codes for use in text by computer systems
+that use ASCII and derivatives of ASCII. The codes represent additional information about the text, such as the position
 of a cursor, an instruction to start a new line, or a message that the text has been received.
 
-C0 codes are the range @racket[#\u00]–@racket[#\u1F] and the default C0 set was originally defined in ISO 646 (ASCII).
-C1 codes are the range @racket[#\u80]–@racket[#\u9F] and the default C1 set was originally defined in @cite["ECMA48"]
-(harmonized later with ISO 6429). The ISO/IEC 2022 system of specifying control and graphic characters allows other
-C0 and C1 sets to be available for specialized applications, but they are rarely used.
+@tt{C0} codes are the range @racket[#\u00]–@racket[#\u1F] and the default @tt{C0} set was originally defined in ISO 646
+(ASCII). @tt{C1} codes are the range @racket[#\u80]–@racket[#\u9F] and the default @tt{C1} set was originally defined in
+@cite["ECMA48"] (harmonized later with ISO 6429). The ISO/IEC 2022 system of specifying control and graphic characters
+allows other @tt{C0} and @tt{C1} sets to be available for specialized applications, but they are rarely used.
+
+For more information, see
+@hyperlink["https://en.wikipedia.org/wiki/C0_and_C1_control_codes"]{C0 and C1 control codes} (Wikipedia).
 
 @deftogether[(
-  @defthing[c0/null char?]
-  @defthing[c0/start-of-heading char?]
-  @defthing[c0/start-of-text char?]
-  @defthing[c0/end-of-text char?]
-  @defthing[c0/end-of-transmission char?]
-  @defthing[c0/enquiry char?]
-  @defthing[c0/acknowledge char?]
-  @defthing[c0/bell char?]
-  @defthing[c0/backspace char?]
-  @defthing[c0/horizontal-tabulation char?]
-  @defthing[c0/line-feed char?]
-  @defthing[c0/vertical-tabulation char?]
-  @defthing[c0/form-feed char?]
-  @defthing[c0/carriage-return char?]
-  @defthing[c0/shift-out char?]
-  @defthing[c0/shift-in char?]
-  @defthing[c0/data-link-escape char?]
-  @defthing[c0/device-control-one char?]
-  @defthing[c0/device-control-two char?]
-  @defthing[c0/device-control-three char?]
-  @defthing[c0/device-control-four char?]
-  @defthing[c0/negative-acknowledge char?]
-  @defthing[c0/synchronous-idle char?]
-  @defthing[c0/end-of-transmission-block char?]
-  @defthing[c0/cancel char?]
-  @defthing[c0/end-of-medium char?]
-  @defthing[c0/substitute char?]
-  @defthing[c0/escape char?]
-  @defthing[c0/file-separator char?]
-  @defthing[c0/group-separator char?]
-  @defthing[c0/record-separator char?]
-  @defthing[c0/unit-separator char?]
+  @defthing[c0/null char-ascii/c]
+  @defthing[c0/start-of-heading char-ascii/c]
+  @defthing[c0/start-of-text char-ascii/c]
+  @defthing[c0/end-of-text char-ascii/c]
+  @defthing[c0/end-of-transmission char-ascii/c]
+  @defthing[c0/enquiry char-ascii/c]
+  @defthing[c0/acknowledge char-ascii/c]
+  @defthing[c0/bell char-ascii/c]
+  @defthing[c0/backspace char-ascii/c]
+  @defthing[c0/horizontal-tabulation char-ascii/c]
+  @defthing[c0/line-feed char-ascii/c]
+  @defthing[c0/vertical-tabulation char-ascii/c]
+  @defthing[c0/form-feed char-ascii/c]
+  @defthing[c0/carriage-return char-ascii/c]
+  @defthing[c0/shift-out char-ascii/c]
+  @defthing[c0/shift-in char-ascii/c]
+  @defthing[c0/data-link-escape char-ascii/c]
+  @defthing[c0/device-control-one char-ascii/c]
+  @defthing[c0/device-control-two char-ascii/c]
+  @defthing[c0/device-control-three char-ascii/c]
+  @defthing[c0/device-control-four char-ascii/c]
+  @defthing[c0/negative-acknowledge char-ascii/c]
+  @defthing[c0/synchronous-idle char-ascii/c]
+  @defthing[c0/end-of-transmission-block char-ascii/c]
+  @defthing[c0/cancel char-ascii/c]
+  @defthing[c0/end-of-medium char-ascii/c]
+  @defthing[c0/substitute char-ascii/c]
+  @defthing[c0/escape char-ascii/c]
+  @defthing[c0/file-separator char-ascii/c]
+  @defthing[c0/group-separator char-ascii/c]
+  @defthing[c0/record-separator char-ascii/c]
+  @defthing[c0/unit-separator char-ascii/c]
 )]{
 Almost all users assume some functions of some single-byte characters. Initially defined as part of ASCII, the
-default C0 control code set is now defined in ISO 6429 (ECMA-48), making it part of the same standard as the C1
-set invoked by the ANSI escape sequences (although ISO 2022 allows the ISO 6429 C0 set to be used without the
-ISO 6429 C1 set, and vice versa, provided that 0x1B is always ESC).
+default @tt{C0} control code set is now defined in ISO 6429 (@cite["ECMA48"]), making it part of the same standard as
+the @tt{C1} set invoked by the ANSI escape sequences (although ISO 2022 allows the ISO 6429 @tt{C0} set to be used
+without the ISO 6429 @tt{C1} set, and vice versa, provided that @racket[#\u1B] is always @tt{ESC}).
 }
 
-@defthing[c0/delete char?]{
-ANSI added this as an additional control character and while it behaves as a C0 control it is outside of the C0 range.
-}
-
-@deftogether[(
-  @defthing[c1/padding-character char?]
-  @defthing[c1/high-octal-preset char?]
-  @defthing[c1/break-permitted-here char?]
-  @defthing[c1/no-break-here char?]
-  @defthing[c1/index char?]
-  @defthing[c1/next-line char?]
-  @defthing[c1/start-of-selected-area char?]
-  @defthing[c1/end-of-selected-area char?]
-  @defthing[c1/horizontal-tabulation-set char?]
-  @defthing[c1/horizontal-tabulation-with-justification char?]
-  @defthing[c1/vertical-tabulation-set char?]
-  @defthing[c1/parial-line-down char?]
-  @defthing[c1/parial-line-up char?]
-  @defthing[c1/reverse-line-feed char?]
-  @defthing[c1/single-shift-2 char?]
-  @defthing[c1/single-shift-3 char?]
-  @defthing[c1/device-control-string char?]
-  @defthing[c1/private-use-1 char?]
-  @defthing[c1/private-use-2 char?]
-  @defthing[c1/set-transmission-state char?]
-  @defthing[c1/cancel-character char?]
-  @defthing[c1/message-waiting char?]
-  @defthing[c1/start-of-protected-area char?]
-  @defthing[c1/end-of-protected-area char?]
-  @defthing[c1/start-of-string char?]
-  @defthing[c1/single-graphic-character-introducer char?]
-  @defthing[c1/single-character-introducer char?]
-  @defthing[c1/control-sequence-introducer char?]
-  @defthing[c1/string-terminator char?]
-  @defthing[c1/operating-system-command char?]
-  @defthing[c1/privacy-message char?]
-  @defthing[c1/application-program-command char?]
-)]{
-TBD
+@defthing[c0/delete char-ascii/c]{
+ANSI added this as an additional control character and while it behaves as a @tt{C0} control it is outside of the
+@tt{C0} range.
 }
 
 @deftogether[(
-  @defthing[c1-str/padding-character string?]
-  @defthing[c1-str/high-octal-preset string?]
-  @defthing[c1-str/break-permitted-here string?]
-  @defthing[c1-str/no-break-here string?]
-  @defthing[c1-str/index string?]
-  @defthing[c1-str/next-line string?]
-  @defthing[c1-str/start-of-selected-area string?]
-  @defthing[c1-str/end-of-selected-area string?]
-  @defthing[c1-str/horizontal-tabulation-set string?]
-  @defthing[c1-str/horizontal-tabulation-with-justification string?]
-  @defthing[c1-str/vertical-tabulation-set string?]
-  @defthing[c1-str/parial-line-down string?]
-  @defthing[c1-str/parial-line-up string?]
-  @defthing[c1-str/reverse-line-feed string?]
-  @defthing[c1-str/single-shift-2 string?]
-  @defthing[c1-str/single-shift-3 string?]
-  @defthing[c1-str/device-control-string string?]
-  @defthing[c1-str/private-use-1 string?]
-  @defthing[c1-str/private-use-2 string?]
-  @defthing[c1-str/set-transmission-state string?]
-  @defthing[c1-str/cancel-character string?]
-  @defthing[c1-str/message-waiting string?]
-  @defthing[c1-str/start-of-protected-area string?]
-  @defthing[c1-str/end-of-protected-area string?]
-  @defthing[c1-str/start-of-string string?]
-  @defthing[c1-str/single-graphic-character-introducer string?]
-  @defthing[c1-str/single-character-introducer string?]
-  @defthing[c1-str/control-sequence-introducer string?]
-  @defthing[c1-str/string-terminator string?]
-  @defthing[c1-str/operating-system-command string?]
-  @defthing[c1-str/privacy-message string?]
-  @defthing[c1-str/application-program-command string?]
+  @defthing[c1/padding-character char-ascii/c]
+  @defthing[c1/high-octal-preset char-ascii/c]
+  @defthing[c1/break-permitted-here char-ascii/c]
+  @defthing[c1/no-break-here char-ascii/c]
+  @defthing[c1/index char-ascii/c]
+  @defthing[c1/next-line char-ascii/c]
+  @defthing[c1/start-of-selected-area char-ascii/c]
+  @defthing[c1/end-of-selected-area char-ascii/c]
+  @defthing[c1/horizontal-tabulation-set char-ascii/c]
+  @defthing[c1/horizontal-tabulation-with-justification char-ascii/c]
+  @defthing[c1/vertical-tabulation-set char-ascii/c]
+  @defthing[c1/parial-line-down char-ascii/c]
+  @defthing[c1/parial-line-up char-ascii/c]
+  @defthing[c1/reverse-line-feed char-ascii/c]
+  @defthing[c1/single-shift-2 char-ascii/c]
+  @defthing[c1/single-shift-3 char-ascii/c]
+  @defthing[c1/device-control-string char-ascii/c]
+  @defthing[c1/private-use-1 char-ascii/c]
+  @defthing[c1/private-use-2 char-ascii/c]
+  @defthing[c1/set-transmission-state char-ascii/c]
+  @defthing[c1/cancel-character char-ascii/c]
+  @defthing[c1/message-waiting char-ascii/c]
+  @defthing[c1/start-of-protected-area char-ascii/c]
+  @defthing[c1/end-of-protected-area char-ascii/c]
+  @defthing[c1/start-of-string char-ascii/c]
+  @defthing[c1/single-graphic-character-introducer char-ascii/c]
+  @defthing[c1/single-character-introducer char-ascii/c]
+  @defthing[c1/control-sequence-introducer char-ascii/c]
+  @defthing[c1/string-terminator char-ascii/c]
+  @defthing[c1/operating-system-command char-ascii/c]
+  @defthing[c1/privacy-message char-ascii/c]
+  @defthing[c1/application-program-command char-ascii/c]
 )]{
 TBD
 }
@@ -165,100 +182,95 @@ TBD
 
 
 @defproc[(char-c0-code? [v any/c]) boolean?]{
-Returns @racket[#t] if @racket[v] is a character and within the C0 range.
-}
-
-@defproc[(char-c0-symbol? [v any/c]) boolean?]{
-Returns @racket[#t] if @racket[v] is a character and within the C0 range.
+Returns @racket[#t] if @racket[v] is a character and within the @tt{C0} range.
 }
 
 @deftogether[(
 @defproc[(char-c1-code? [v any/c]) boolean?]
-@defproc[(string-c1-code? [v any/c]) boolean?]
 )]{
-Returns @racket[#t] if @racket[v] is a character and within the C0 range, or a string matching one of the @tt{c1-str}
-values.
+Returns @racket[#t] if @racket[v] is a character and within the @tt{C1} range.
 }
 
 @deftogether[(
 @defproc[(char-fe-code? [v any/c]) boolean?]
-@defproc[(string-fe-code? [v any/c]) boolean?]
 )]{
-TBD
+Returns @racket[#t] if @racket[v] is a character and within the @tt{Fe} range.
 }
 
 @deftogether[(
 @defproc[(char-fs-code? [v any/c]) boolean?]
-@defproc[(string-fs-code? [v any/c]) boolean?]
 )]{
-TBD
+Returns @racket[#t] if @racket[v] is a character and within the @tt{Fs} range.
 }
 
 @deftogether[(
 @defproc[(char-fp-code? [v any/c]) boolean?]
-@defproc[(string-fp-code? [v any/c]) boolean?]
 )]{
-TBD
+Returns @racket[#t] if @racket[v] is a character and within the @tt{Fp} range.
 }
 
 @deftogether[(
 @defproc[(char-nf-code? [v any/c]) boolean?]
-@defproc[(string-nf-code? [v any/c]) boolean?]
 )]{
-TBD
+Returns @racket[#t] if @racket[v] is a character and within the @tt{nF} range.
 }
 
 @;{============================================================================}
 @subsection[]{C0 Unicode Symbols}
 
 Unicode defines a set of Control Pictures is a Unicode block containing characters for graphically representing
-the C0 control codes, and other control characters.
+the @tt{C0} control codes, and other control characters.
 
 @deftogether[(
-  @defthing[c0-symbol/null char?]
-  @defthing[c0-symbol/start-of-heading char?]
-  @defthing[c0-symbol/start-of-text char?]
-  @defthing[c0-symbol/end-of-text char?]
-  @defthing[c0-symbol/end-of-transmission char?]
-  @defthing[c0-symbol/enquiry char?]
-  @defthing[c0-symbol/acknowledge char?]
-  @defthing[c0-symbol/bell char?]
-  @defthing[c0-symbol/backspace char?]
-  @defthing[c0-symbol/horizontal-tabulation char?]
-  @defthing[c0-symbol/line-feed char?]
-  @defthing[c0-symbol/vertical-tabulation char?]
-  @defthing[c0-symbol/form-feed char?]
-  @defthing[c0-symbol/carriage-return char?]
-  @defthing[c0-symbol/shift-out char?]
-  @defthing[c0-symbol/shift-in char?]
-  @defthing[c0-symbol/data-link-escape char?]
-  @defthing[c0-symbol/device-control-one char?]
-  @defthing[c0-symbol/device-control-two char?]
-  @defthing[c0-symbol/device-control-three char?]
-  @defthing[c0-symbol/device-control-four char?]
-  @defthing[c0-symbol/negative-acknowledge char?]
-  @defthing[c0-symbol/synchronous-idle char?]
-  @defthing[c0-symbol/end-of-transmission-block char?]
-  @defthing[c0-symbol/cancel char?]
-  @defthing[c0-symbol/end-of-medium char?]
-  @defthing[c0-symbol/substitute char?]
-  @defthing[c0-symbol/escape char?]
-  @defthing[c0-symbol/file-separator char?]
-  @defthing[c0-symbol/group-separator char?]
-  @defthing[c0-symbol/record-separator char?]
-  @defthing[c0-symbol/unit-separator char?]
-  @defthing[c0-symbol/space char?]
-  @defthing[c0-symbol/delete char?]
-  @defthing[c0-symbol/blank char?]
-  @defthing[c0-symbol/open-box char?]
-  @defthing[c0-symbol/newline char?]
-  @defthing[c0-symbol/delete-form-two char?]
-  @defthing[c0-symbol/substitute-form-two char?]
+  @defthing[c0-symbol/null char-ascii/c]
+  @defthing[c0-symbol/start-of-heading char-ascii/c]
+  @defthing[c0-symbol/start-of-text char-ascii/c]
+  @defthing[c0-symbol/end-of-text char-ascii/c]
+  @defthing[c0-symbol/end-of-transmission char-ascii/c]
+  @defthing[c0-symbol/enquiry char-ascii/c]
+  @defthing[c0-symbol/acknowledge char-ascii/c]
+  @defthing[c0-symbol/bell char-ascii/c]
+  @defthing[c0-symbol/backspace char-ascii/c]
+  @defthing[c0-symbol/horizontal-tabulation char-ascii/c]
+  @defthing[c0-symbol/line-feed char-ascii/c]
+  @defthing[c0-symbol/vertical-tabulation char-ascii/c]
+  @defthing[c0-symbol/form-feed char-ascii/c]
+  @defthing[c0-symbol/carriage-return char-ascii/c]
+  @defthing[c0-symbol/shift-out char-ascii/c]
+  @defthing[c0-symbol/shift-in char-ascii/c]
+  @defthing[c0-symbol/data-link-escape char-ascii/c]
+  @defthing[c0-symbol/device-control-one char-ascii/c]
+  @defthing[c0-symbol/device-control-two char-ascii/c]
+  @defthing[c0-symbol/device-control-three char-ascii/c]
+  @defthing[c0-symbol/device-control-four char-ascii/c]
+  @defthing[c0-symbol/negative-acknowledge char-ascii/c]
+  @defthing[c0-symbol/synchronous-idle char-ascii/c]
+  @defthing[c0-symbol/end-of-transmission-block char-ascii/c]
+  @defthing[c0-symbol/cancel char-ascii/c]
+  @defthing[c0-symbol/end-of-medium char-ascii/c]
+  @defthing[c0-symbol/substitute char-ascii/c]
+  @defthing[c0-symbol/escape char-ascii/c]
+  @defthing[c0-symbol/file-separator char-ascii/c]
+  @defthing[c0-symbol/group-separator char-ascii/c]
+  @defthing[c0-symbol/record-separator char-ascii/c]
+  @defthing[c0-symbol/unit-separator char-ascii/c]
+  @defthing[c0-symbol/space char-ascii/c]
+  @defthing[c0-symbol/delete char-ascii/c]
+  @defthing[c0-symbol/blank char-ascii/c]
+  @defthing[c0-symbol/open-box char-ascii/c]
+  @defthing[c0-symbol/newline char-ascii/c]
+  @defthing[c0-symbol/delete-form-two char-ascii/c]
+  @defthing[c0-symbol/substitute-form-two char-ascii/c]
 )]{
-Each value is a representation of a control character in the C0 group. The last 5 values are provided alternatives.
+Each value is a representation of a control character in the @tt{C0} group. The last 5 values are provided alternatives.
 }
 
-@defproc[(c0-symbol [c char?]) (or/c char? #f)]{
+@defproc[(char-c0-symbol? [v any/c]) boolean?]{
+Returns @racket[#t] if @racket[v] is a character and within the @tt{C0} symbol character range.
+}
+
+@defproc[(c0-symbol [c char-c0-code?])
+         (or/c char-c0-symbol? #f)]{
 Returns the symbol associated with @racket[c] if it is a @racket[char-c0-code?], else @racket[#f].
 
 @examples[#:eval example-eval
@@ -272,39 +284,47 @@ Returns the symbol associated with @racket[c] if it is a @racket[char-c0-code?],
 @section[]{Terminal Control}
 @defmodule[ansi-terminal/terminal]
 
-@defproc[(cursor-up [n exact-nonnegative-integer? 1]) string?]{
+@;@defproc[(cursor-up [n code-param/c 1]) string?]{
+@;TBD
+@;}
+
+@defproc[(cursor-up [n code-param/c 1]) string?]{
 TBD
 }
 
-@defproc[(cursor-down [n exact-nonnegative-integer? 1]) string?]{
-TBD
-}
-
-
-@defproc[(cursor-forward [n exact-nonnegative-integer? 1]) string?]{
-TBD
-}
-
-
-@defproc[(cursor-back [n exact-nonnegative-integer? 1]) string?]{
+@defproc[(cursor-down [n code-param/c 1]) string?]{
 TBD
 }
 
 
-@defproc[(cursor-previous-line [n exact-nonnegative-integer? 1]) string?]{
+@defproc[(cursor-forward [n code-param/c 1]) string?]{
 TBD
 }
 
 
-@defproc[(cursor-set-column [n exact-nonnegative-integer? 1]) string?]{
+@defproc[(cursor-back [n code-param/c 1]) string?]{
+TBD
+}
+
+
+@defproc[(cursor-previous-line [n code-param/c 1]) string?]{
+TBD
+}
+
+
+@defproc[(cursor-set-column [n code-param/c 1]) string?]{
 TBD
 }
 
 
 @defproc[(cursor-move
-          [n exact-nonnegative-integer? 1]
-          [m exact-nonnegative-integer? 1])
+          [n code-param/c 1]
+          [m code-param/c 1])
          string?]{
+TBD
+}
+
+@defproc[(cursor-move-home) string?]{
 TBD
 }
 
@@ -330,12 +350,12 @@ TBD
 }
 
 
-@defproc[(scroll-up [n exact-nonnegative-integer? 1]) string?]{
+@defproc[(scroll-up [n code-param/c 1]) string?]{
 TBD
 }
 
 
-@defproc[(scroll-down [n exact-nonnegative-integer? 1]) string?]{
+@defproc[(scroll-down [n code-param/c 1]) string?]{
 TBD
 }
 
@@ -349,18 +369,6 @@ TBD
 @;{============================================================================}
 @subsection[]{Graphics Predicates}
 
-@defthing[exact-byte? flat-contract?]{
-An unsigned byte with range @tt{0..255}.
-}
-
-@defthing[style-code-value/c flat-contract?]{
-An individual value within a style code; this happens to be a @racket[exact-byte?].
-}
-
-@defthing[style-code/c flat-contract?]{
-A list of @racket[style-code-value/c] comprising a complete CSI code.
-}
-
 @defthing[color-name? flat-contract?]{
 The set of 8 major colors specified by name.
 }
@@ -371,6 +379,22 @@ An RGB color specification represented as a three-member list of bytes.
 
 @defthing[color/c contract?]{
 TBD
+
+@itemlist[
+  @item{@racket[color-name?] -- One of 16 predefined colors, 8 standard and 8 bright.}
+  @item{@racket[code-param/c] -- Specification of a 256 color.}
+  @item{@racket[rgb-color/c] -- Specification of a color as an RGB value.}
+]
+
+If one of the 256 colors are selected, the meaning is as follows:
+
+@itemlist[
+  @item{@tt{0..7} -- standard 8 colors}
+  @item{@tt{8..15} -- standard 8 bright colors}
+  @item{@tt{16..231} -- 6×6×6 color cube}
+  @item{@tt{232..252} -- 24 greyscale shades from dark to light}
+]
+
 }
 
 @defthing[attribute-name? flat-contract?]{
@@ -380,17 +404,40 @@ The set of text attribute names; note that this includes both enable and disable
 @;{============================================================================}
 @subsection[]{Simple Styling}
 
-The following functions are intended to ...
-
-@;{----------------------------------------------------------------------------}
-@subsubsection{Text Attributes}
+The following functions are intended to provide a very direct style approach for both text attributes and colors.
+The core functions are @racket[with-attribute], @racket[text-color] and @racket[on-background] which are then
+simplified further by attribute- and color-specific functions. In all cases the function will take an optional
+parameter @italic{return-to} which will specify an attribute or color to set once the provided string has been
+formatted. In the case of attributes the value @racket['auto] will use a corresponding code to turn off the attribute.
+For colors the value @racket['default] will use a specific code for either the default foreground or default background
+color.
 
 @defproc[(with-attribute
           [str string?]
           [attribute attribute-name?]
           [return-to (or/c #f 'auto attribute-name?) 'auto])
          string?]{
-TBD
+Returns a string with @racket[attribute] turned into a control string before @racket[str] and followed by
+@racket[return-to] as a control string.
+
+As mentioned above the value @racket['auto] for @racket[return-to] will use the control sequence to turn off
+@racket[attribute]. In the following example the return-to value is the attribute @racket['not-underline].
+
+@examples[#:eval example-eval
+(with-attribute "text" 'underline 'auto)
+]
+
+A value of @racket[#f] for @racket[return-to] will skip adding a return-to control sequence.
+
+@examples[#:eval example-eval
+(with-attribute "text" 'underline #f)
+]
+
+Alternatively it is possible to specify an entirely different attribute to end the sequence with.
+
+@examples[#:eval example-eval
+(with-attribute "text" 'underline 'bold)
+]
 }
 
 @deftogether[(
@@ -490,15 +537,32 @@ and are bold.
 ]
 }
 
-@;{----------------------------------------------------------------------------}
-@subsubsection{Color, Foreground and Background}
-
 @defproc[(text-color
           [str string?]
           [color color-name?]
           [return-to (or/c #f color/c) 'default])
           string?]{
-TBD
+Returns a string with @racket[color] turned into a control string before @racket[str] and followed by
+@racket[return-to] as a control string.
+
+As mentioned above the value @racket['default] for @racket[return-to] will use the control sequence for the
+default foregound color.
+
+@examples[#:eval example-eval
+(text-color "text" 'red 'default)
+]
+
+A value of @racket[#f] for @racket[return-to] will skip adding a return-to control sequence.
+
+@examples[#:eval example-eval
+(text-color "text" 'red #f)
+]
+
+Alternatively it is possible to specify an entirely different color to end the sequence with.
+
+@examples[#:eval example-eval
+(text-color "text" 'red 'green)
+]
 }
 
 @deftogether[(
@@ -531,7 +595,27 @@ TBD
           [color color-name?]
           [return-to (or/c #f color/c) 'default])
           string?]{
-TBD
+Returns a string with @racket[color] turned into a control string before @racket[str] and followed by
+@racket[return-to] as a control string.
+
+As mentioned above the value @racket['default] for @racket[return-to] will use the control sequence for the
+default backgound color.
+
+@examples[#:eval example-eval
+(on-background "text" 'red 'default)
+]
+
+A value of @racket[#f] for @racket[return-to] will skip adding a return-to control sequence.
+
+@examples[#:eval example-eval
+(on-background "text" 'red #f)
+]
+
+Alternatively it is possible to specify an entirely different color to end the sequence with.
+
+@examples[#:eval example-eval
+(on-background "text" 'red 'green)
+]
 }
 
 @deftogether[(
@@ -562,16 +646,19 @@ TBD
 @;{============================================================================}
 @subsection[]{Complex Styling}
 
+This section allows for more complex styling in that styles can be more easily combined and also defined in a reusasable
+structure, the @racket[style?].
+
 @defproc[#:kind "predicate"
          (style?
           [val any/c])
           boolean?]{
-Returns @racket[#t] if @racket[val], ...
+Returns @racket[#t] if @racket[val], is a style structure instance.
 }
 
 @defproc[(style->list
           [style style?])
-         (listof style-code/c)]{
+         (listof code-param-list/c)]{
 TBD
 }
 
@@ -584,7 +671,7 @@ TBD
 
 @defproc[(style-push
           [style-1 style?]
-          [code-list style-code/c])
+          [code-list code-param-list/c])
          style?]{
 TBD
 }
@@ -608,10 +695,32 @@ TBD
 
 @defthing[make-style-param/c contract?]{
 TBD
+
+@itemlist[
+  @item{@racket['underline] -- Turns on the specified text attribute.}
+  @item{@racket['(not bold)] -- Turns off the specified text attribute.}
+  @item{@racket['blue] -- Sets the foreground color.}
+  @item{@racket['(text blue)] -- Sets the foreground color, note that the first symbol may be also be @racket['fg] or
+  @racket['foreground].}
+  @item{@racket['(on green)] -- Sets the background color, note that the first symbol may be also be @racket['bg] or
+  @racket['background].}
+]
 }
 
+@defproc[(make-style
+          [st make-style-param/c] ...+)
+         style?]{
+TBD
 
-@;; (make-style (-> make-style-param/c ... make-style-param/c style?))
+@examples[#:eval example-eval
+(define normal-style (make-style 'bright-white '(on bright-black)))
+(define success-style (make-style 'green))
+(define error-style (make-style 'red '(on black) 'blink-slow 'bold))
+(if (some-function)
+    (style-string "OK" success-style #:return-to normal-style)
+    (style-string "Oops" error-style #:return-to normal-style))
+]
+}
 
 @defproc[(style-string
           [str string?]
@@ -662,7 +771,7 @@ TBD
              #:location "ECMA"
              #:url "https://ecma-international.org/publications-and-standards/standards/ecma-35/"
              #:date "December 1994"
-             #:note " See also ISO/IEC number 2022"
+             #:note " See also ISO/IEC number 2022")
 )
 
 @;{============================================================================}

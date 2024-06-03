@@ -7,13 +7,10 @@
          racket/set
          racket/string
          ;; --------------------------------------
-         "./control.rkt")
+         "./main.rkt"
+         "./private/common.rkt")
 
 (provide (contract-out
-          (style-code-value/c flat-contract?)
-          (style-code/c flat-contract?)
-          ;; --------------------------------------
-          (exact-byte? flat-contract?)
           (rgb-color/c contract?)
           (color-name? flat-contract?)
           (attribute-name? flat-contract?)
@@ -90,9 +87,9 @@
           (on-bright-white (->* (string?) ((or/c #f color/c)) string?))
           ;; --------------------------------------
           (style? (-> any/c boolean?))
-          (style->list (-> style? (listof style-code/c)))
+          (style->list (-> style? code-param-list/c))
           (style-append (-> style? style? style?))
-          (style-push (-> style? style-code/c style?))
+          (style-push (-> style? code-param-list/c style?))
           (style-pop (-> style? style?))
           (style->string (-> style? string?))
           (make-style-param/c contract?)
@@ -106,8 +103,6 @@
 ;; -------------------------------------------------------------------------------------------------
 ;; Code Mappings
 ;; -------------------------------------------------------------------------------------------------
-
-(define csi c1-str/single-graphic-character-introducer)
 
 (define sgr-reset '(0))
 
@@ -230,14 +225,6 @@
 ;; Code-based procedures
 ;; -------------------------------------------------------------------------------------------------
 
-(define (exact-byte? val)
-  (and (exact-nonnegative-integer? val)
-       (<= 0 val 255)))
-
-(define style-code-value/c exact-byte?)
-
-(define style-code/c (listof style-code-value/c))
-
 (define (attribute->code attr)
   (if (hash-has-key? sgr-attributes attr)
       (hash-ref sgr-attributes attr)
@@ -245,12 +232,12 @@
 
 ;; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-(define rgb-color/c (list/c exact-byte? exact-byte? exact-byte?))
+(define rgb-color/c (list/c code-param/c code-param/c code-param/c))
 
 (define (color-name? val)
   (set-member? sgr-color-names val))
 
-(define color/c (or/c 'default color-name? exact-byte? rgb-color/c))
+(define color/c (or/c 'default color-name? code-param/c rgb-color/c))
 
 (define (attribute-name? val)
   (set-member? sgr-attribute-names val))
@@ -263,7 +250,7 @@
      (list (if foreground?
                (hash-ref sgr-foreground-color color)
                (hash-ref sgr-background-color color))))
-    ((exact-byte? color)
+    ((code-param/c color)
      (if foreground?
          `(38 5 ,color)
          `(48 5 ,color)))
@@ -275,22 +262,16 @@
       color))
     (else (raise-argument-error 'color "color/c" color))))
 
-(define (code-list->string code-list)
-  (let ((code-list (if (list? code-list) code-list (list code-list))))
-    (format "~a~am"
-            csi
-            (string-join (map number->string code-list) ";"))))
-
 ;; -------------------------------------------------------------------------------------------------
 ;; Code-based simple styling
 ;; -------------------------------------------------------------------------------------------------
 
 (define (code-style-string str style-code return-code)
   (string-append
-   (code-list->string style-code)
+   (escape/sgr style-code)
    str
    (if return-code
-       (code-list->string return-code)
+       (escape/sgr return-code)
        "")))
 
 ;; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -532,7 +513,7 @@
   (mkstyle (cdr (style->list style))))
 
 (define (style->string style)
-  (code-list->string (flatten (style->list style))))
+  (escape/sgr (flatten (style->list style))))
 
 ;; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
