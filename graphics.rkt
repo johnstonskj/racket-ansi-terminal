@@ -1,10 +1,13 @@
 #lang racket/base
 
-(require racket/contract
+(require racket/bool
+         racket/contract
          racket/format
          racket/list
          racket/set
-         racket/string)
+         racket/string
+         ;; --------------------------------------
+         "./control.rkt")
 
 (provide (contract-out
           (style-code-value/c flat-contract?)
@@ -17,74 +20,74 @@
           ;; --------------------------------------
           (with-attribute
            (->* (string? attribute-name?)
-                ((or/c 'auto 'none attribute-name?))
+                ((or/c #f 'auto attribute-name?))
                 string?))
-          (bold (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (faint (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (italic (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (underline (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (blink-slow (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (blink-rapid (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (reversed (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (conceal (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (crossed-out (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (font-alternate-1 (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (font-alternate-2 (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (font-alternate-3 (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (font-alternate-4 (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (font-alternate-5 (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (font-alternate-6 (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (font-alternate-7 (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (font-alternate-8 (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (font-alternate-9 (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (font-fraktur (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (underline-double (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (proportional-spacing (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (framed (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (encircled (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (overline (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (ideogram-underline-or-right (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (ideogram-double-underline-or-right (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (ideogram-overline-or-left (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (ideogram-double-overline-or-left (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (ideogram-stress-marking (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (superscript (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
-          (subscript (->* (string?) ((or/c 'auto 'none attribute-name?)) string?))
+          (bold (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (faint (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (italic (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (underline (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (blink-slow (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (blink-rapid (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (reversed (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (conceal (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (crossed-out (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (font-alternate-1 (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (font-alternate-2 (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (font-alternate-3 (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (font-alternate-4 (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (font-alternate-5 (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (font-alternate-6 (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (font-alternate-7 (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (font-alternate-8 (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (font-alternate-9 (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (font-fraktur (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (underline-double (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (proportional-spacing (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (framed (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (encircled (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (overline (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (ideogram-underline-or-right (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (ideogram-double-underline-or-right (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (ideogram-overline-or-left (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (ideogram-double-overline-or-left (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (ideogram-stress-marking (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (superscript (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
+          (subscript (->* (string?) ((or/c #f 'auto attribute-name?)) string?))
           ;; - - - - - - - - - - - - - - - - - - -
-          (text-color (->* (string? color-name?) ((or/c 'default 'none color-name?)) string?))
-          (black-text (->* (string?) ((or/c 'default 'none color-name?)) string?))
-          (red-text (->* (string?) ((or/c 'default 'none color-name?)) string?))
-          (green-text (->* (string?) ((or/c 'default 'none color-name?)) string?))
-          (yellow-text (->* (string?) ((or/c 'default 'none color-name?)) string?))
-          (blue-text (->* (string?) ((or/c 'default 'none color-name?)) string?))
-          (magenta-text (->* (string?) ((or/c 'default 'none color-name?)) string?))
-          (cyan-text (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (white-text (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (bright-black-text (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (bright-red-text (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (bright-green-text (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (bright-yellow-text (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (bright-blue-text (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (bright-magenta-text (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (bright-cyan-text (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (bright-white-text (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-background (->* (string? color-name?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-black (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-red (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-green (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-yellow (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-blue (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-magenta (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-cyan (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-white (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-bright-black (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-bright-red (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-bright-green (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-bright-yellow (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-bright-blue (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-bright-magenta (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-bright-cyan (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
-          (on-bright-white (->* (string?) ((or/c 'default(or/c 'default 'none color-name?) color-name?)) string?))
+          (text-color (->* (string? color/c) ((or/c #f color/c)) string?))
+          (black-text (->* (string?) ((or/c #f color/c)) string?))
+          (red-text (->* (string?) ((or/c #f color/c)) string?))
+          (green-text (->* (string?) ((or/c #f color/c)) string?))
+          (yellow-text (->* (string?) ((or/c #f color/c)) string?))
+          (blue-text (->* (string?) ((or/c #f color/c)) string?))
+          (magenta-text (->* (string?) ((or/c #f color/c)) string?))
+          (cyan-text (->* (string?) ((or/c #f color/c)) string?))
+          (white-text (->* (string?) ((or/c #f color/c)) string?))
+          (bright-black-text (->* (string?) ((or/c #f color/c)) string?))
+          (bright-red-text (->* (string?) ((or/c #f color/c)) string?))
+          (bright-green-text (->* (string?) ((or/c #f color/c)) string?))
+          (bright-yellow-text (->* (string?) ((or/c #f color/c)) string?))
+          (bright-blue-text (->* (string?) ((or/c #f color/c)) string?))
+          (bright-magenta-text (->* (string?) ((or/c #f color/c)) string?))
+          (bright-cyan-text (->* (string?) ((or/c #f color/c)) string?))
+          (bright-white-text (->* (string?) ((or/c #f color/c)) string?))
+          (on-background (->* (string? color/c) ((or/c #f color/c)) string?))
+          (on-black (->* (string?) ((or/c #f color/c)) string?))
+          (on-red (->* (string?) ((or/c #f color/c)) string?))
+          (on-green (->* (string?) ((or/c #f color/c)) string?))
+          (on-yellow (->* (string?) ((or/c #f color/c)) string?))
+          (on-blue (->* (string?) ((or/c #f color/c)) string?))
+          (on-magenta (->* (string?) ((or/c #f color/c)) string?))
+          (on-cyan (->* (string?) ((or/c #f color/c)) string?))
+          (on-white (->* (string?) ((or/c #f color/c)) string?))
+          (on-bright-black (->* (string?) ((or/c #f color/c)) string?))
+          (on-bright-red (->* (string?) ((or/c #f color/c)) string?))
+          (on-bright-green (->* (string?) ((or/c #f color/c)) string?))
+          (on-bright-yellow (->* (string?) ((or/c #f color/c)) string?))
+          (on-bright-blue (->* (string?) ((or/c #f color/c)) string?))
+          (on-bright-magenta (->* (string?) ((or/c #f color/c)) string?))
+          (on-bright-cyan (->* (string?) ((or/c #f color/c)) string?))
+          (on-bright-white (->* (string?) ((or/c #f color/c)) string?))
           ;; --------------------------------------
           (style? (-> any/c boolean?))
           (style->list (-> style? (listof style-code/c)))
@@ -104,7 +107,7 @@
 ;; Code Mappings
 ;; -------------------------------------------------------------------------------------------------
 
-(define csi (string #\033 #\[))
+(define csi c1-str/single-graphic-character-introducer)
 
 (define sgr-reset '(0))
 
@@ -235,14 +238,22 @@
 
 (define style-code/c (listof style-code-value/c))
 
-;; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-(define (attribute->code opt)
-  (if (hash-has-key? sgr-attributes opt)
-      (hash-ref sgr-attributes opt)
-      (error "not an option: ~a" opt)))
+(define (attribute->code attr)
+  (if (hash-has-key? sgr-attributes attr)
+      (hash-ref sgr-attributes attr)
+      (raise-argument-error 'attr "attribute-name?" attr)))
 
 ;; - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+(define rgb-color/c (list/c exact-byte? exact-byte? exact-byte?))
+
+(define (color-name? val)
+  (set-member? sgr-color-names val))
+
+(define color/c (or/c 'default color-name? exact-byte? rgb-color/c))
+
+(define (attribute-name? val)
+  (set-member? sgr-attribute-names val))
 
 (define (color->code color foreground?)
   (cond
@@ -262,27 +273,13 @@
           '(38 2)
           '(48 2))
       color))
-    (else (error "not a color"))))
+    (else (raise-argument-error 'color "color/c" color))))
 
 (define (code-list->string code-list)
   (let ((code-list (if (list? code-list) code-list (list code-list))))
     (format "~a~am"
             csi
             (string-join (map number->string code-list) ";"))))
-
-;; -------------------------------------------------------------------------------------------------
-;; Color predicates
-;; -------------------------------------------------------------------------------------------------
-
-(define rgb-color/c (list/c exact-byte? exact-byte? exact-byte?))
-
-(define (color-name? val)
-  (set-member? sgr-color-names val))
-
-(define color/c (or/c 'default color-name? exact-byte? rgb-color/c))
-
-(define (attribute-name? val)
-  (set-member? sgr-attribute-names val))
 
 ;; -------------------------------------------------------------------------------------------------
 ;; Code-based simple styling
@@ -300,7 +297,7 @@
 
 (define (with-attribute str attribute (return-to 'auto))
   (let ((return-to (cond
-                    ((eq? return-to 'none) #f)
+                    ((false? return-to) #f)
                     ((eq? return-to 'auto)
                      (attribute->code (hash-ref sgr-onoff-attributes attribute)))
                     (else (attribute->code return-to)))))
@@ -460,9 +457,9 @@
 
 (define (on-background  str color (return-to 'default))
   (code-style-string str
-                     (color->code color #t)
+                     (color->code color #f)
                      (if return-to
-                         (color->code return-to #t)
+                         (color->code return-to #f)
                          #f)))
 
 (define (on-black str (return-to 'default))
@@ -541,17 +538,17 @@
 
 (define make-style-param/c
   (or/c
-   (cons/c (or/c 'fg 'foreground) color-name?)
-   (cons/c (or/c 'bg 'background) color-name?)
-   (cons/c 'not attribute-name?)
+   (list/c (or/c 'text 'fg 'foreground) color-name?)
+   (list/c (or/c 'on 'bg 'background) color-name?)
+   (list/c 'not attribute-name?)
    color-name?
    attribute-name?))
 
 (define (make-style/one st)
   (cond
-    ((and (pair? st) (member (car st) '(fg foreground)))
+    ((and (pair? st) (member (car st) '(text fg foreground)))
      (color->code (cadr st) #t))
-    ((and (pair? st) (member (car st) '(bg background)))
+    ((and (pair? st) (member (car st) '(on bg background)))
      (color->code (cadr st) #f))
     ((and (pair? st) (eq? (car st) 'not) (hash-has-key? sgr-onoff-attributes (cadr st)))
      (attribute->code (hash-ref sgr-onoff-attributes (cadr st))))

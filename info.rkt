@@ -8,5 +8,5 @@
 
 (define deps '("base"))
 (define build-deps '("scribble-lib" "racket-doc" "sandbox-lib" "rackunit-lib"))
-(define scribblings '(("scribblings/ansi-terminal.scrbl" ())))
+(define scribblings '(("scribblings/ansi-terminal.scrbl" (multi-page) (library))))
 (define test-omit-paths '("scribblings"))
