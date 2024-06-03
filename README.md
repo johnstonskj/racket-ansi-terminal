@@ -7,7 +7,17 @@ Control Sequence Introducer (CSI) codes for terminal control.
 [![Documentation](https://img.shields.io/badge/raco%20docs-ansi--terminal-blue.svg)](http://docs.racket-lang.org/ansi-terminal/index.html)
 [![Racket](https://github.com/johnstonskj/racket-ansi-terminal/actions/workflows/racket.yml/badge.svg)](https://github.com/johnstonskj/racket-ansi-terminal/actions/workflows/racket.yml)
 [![GitHub release](https://img.shields.io/github/release/johnstonskj/racket-ansi-terminal.svg?style=flat-square)](https://github.com/johnstonskj/racket-ansi-terminal/releases)
-[![GitHub stars](https://img.shields.io/github/stars/johnstonskj/racket-ansi-terminal.svg)](https://github.com/johnstonskj/racket-ansi-terminal/stargazers)
+[![GitHub
+stars](https://img.shields.io/github/stars/johnstonskj/racket-ansi-terminal.svg)](https://github.com/johnstonskj/racket-ansi-terminal/stargazers)
+
+Currently the package includes the following modules:
+
+- `ansi-terminal` contains common predicates and escape functions.
+- `ansi-terminal/control` contains single character control codes (C0 and C1).
+- `ansi-terminal/terminal` contains terminal control such as cursor movement codes.
+- `ansi-terminal/screen` contains screen mode codes (in progress).
+- `ansi-terminal/graphics` contains SGR codes for text attributes and color.
+
 
 ## Example
 
