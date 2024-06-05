@@ -88,12 +88,12 @@
           ;; --------------------------------------
           (style? (-> any/c boolean?))
           (style->list (-> style? code-param-list/c))
-          (style-append (-> style? style? style?))
+          (style-append (-> style? style? ... style?))
           (style-push (-> style? code-param-list/c style?))
           (style-pop (-> style? style?))
           (style->string (-> style? string?))
           (make-style-param/c contract?)
-          (make-style (-> make-style-param/c ... make-style-param/c style?))
+          (make-style (-> make-style-param/c make-style-param/c ... style?))
           (reset style?)
           ;; --------------------------------------
           (style-string (->* (string? style?) (#:return-to style?) string?))
@@ -503,8 +503,11 @@
 (define (style->list style)
   (style-lst style))
 
-(define (style-append st1 st2)
-  (mkstyle (append  (style->list st1) (style->list st2))))
+(define (style-append st1 . rest)
+  (mkstyle (apply append (style->list st1)
+                  (map
+                   style->list
+                   rest))))
 
 (define (style-push style new)
   (mkstyle (cons new (style->list style))))
